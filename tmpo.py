@@ -121,7 +121,7 @@ import pandas as pd
 
 
 class Session():
-    def __init__(self, path=None, workers=16):
+    def __init__(self, path=None, workers=16, sqlite_path=None):
         self.debug = False
         if path is None:
             path = os.path.expanduser("~") # $HOME
@@ -129,7 +129,10 @@ class Session():
             self.home = os.path.join(path, "tmpo")
         else:
             self.home = os.path.join(path, ".tmpo")
-        self.db = os.path.join(self.home, "tmpo.sqlite3")
+        if sqlite_path is None:
+            self.db = os.path.join(self.home, "tmpo.sqlite3")
+        else:
+            self.db = os.path.join(sqlite_path)
         self.crt = os.path.join(self.home, "flukso.crt")
         self.host = "api.flukso.net"
         try:
