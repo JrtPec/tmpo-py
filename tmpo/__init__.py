@@ -174,9 +174,12 @@ class Session():
             self.home = os.path.join(path, ".tmpo")
         if sqlite_path is None:
             self.db = os.path.join(self.home, "tmpo.sqlite3")
+            self.crt = os.path.join(self.home, "flukso.crt")
         else:
             self.db = os.path.join(sqlite_path)
-        self.crt = os.path.join(self.home, "flukso.crt")
+            self.crt = os.path.join("flukso.crt")
+            with io.open(self.crt, "wb") as f:
+                f.write(FLUKSO_CRT.encode("ascii"))
         self.host = "api.flukso.net"
         try:
             os.mkdir(self.home)
