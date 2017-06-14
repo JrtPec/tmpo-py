@@ -1,9 +1,9 @@
 __title__ = "tmpo"
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 __build__ = 0x000100
 __author__ = "Bart Van Der Meerssche"
 __license__ = "MIT"
-__copyright__ = "Copyright 2014 Bart Van Der Meerssche"
+__copyright__ = "Copyright 2017 Bart Van Der Meerssche"
 
 FLUKSO_CRT = """
 -----BEGIN CERTIFICATE-----
@@ -410,7 +410,10 @@ class Session():
         -------
         pd.Timestamp | int
         """
-        rid, lvl, bid = self.dbcur.execute(SQL_TMPO_LAST, (sid,)).fetchone()
+        cur = self.dbcur.execute(SQL_TMPO_LAST, (sid,))
+        if cur is None:
+            return None
+        rid, lvl, bid = cur.fetchone()
         end_of_block = self._blocktail(lvl, bid)
         if epoch:
             return end_of_block
@@ -432,18 +435,21 @@ class Session():
         jblk = zlib.decompress(blk, zlib.MAX_WBITS | 16)  # gzip decoding
         m = re.match(RE_JSON_BLK, jblk.decode("utf-8"))
         pdjblk = '{"index":%s,"data":%s}' % (m.group("t"), m.group("v"))
-        pdsblk = pd.read_json(
-            pdjblk,
-            typ="series",
-            dtype="float",
-            orient="split",
-            numpy=True,
-            date_unit="s")
+        try:
+            pdsblk = pd.read_json(
+                pdjblk,
+                typ="series",
+                dtype="float",
+                orient="split",
+                numpy=True,
+                date_unit="s")
+        except:
+            return pd.Series()
         h = json.loads(m.group("h"))
         self._npdelta(pdsblk.index, h["head"][0])
         self._npdelta(pdsblk, h["head"][1])
         # Use the built-in ix method to truncate
-        pdsblk_truncated = pdsblk.ix[head:tail] 
+        pdsblk_truncated = pdsblk.ix[head:tail]
         return pdsblk_truncated
 
     def _npdelta(self, a, delta):
